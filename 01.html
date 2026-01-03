@@ -13,10 +13,11 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background-color: #000;
+            background-color: #2a2a2a;
             display: flex;
             justify-content: center;
             align-items: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
         .background {
@@ -26,16 +27,19 @@
             width: 100%;
             height: 100%;
             background-image: url('images/cheesecake-background.png');
-            /* Local Fallback */
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
         }
 
-        /* Attempt to load remote, will overlay if successful, but we'll handle better in JS if needed */
-        /* Actually, let's use a simpler CSS approach and then a JS enhancement */
         .background.remote-loaded {
             background-image: url('https://github.com/ayshsandu/ai-agent-identity-presentation/blob/main/images/cheesecake-background.png?raw=true');
+        }
+
+        .background.fade-out {
+            opacity: 0;
         }
 
         .overlay {
@@ -45,13 +49,75 @@
             width: 100%;
             height: 100%;
             background: rgba(0, 0, 0, 0.4);
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .overlay.fade-out {
+            opacity: 0;
+        }
+
+        .text-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .text-container.show {
+            opacity: 1;
+        }
+
+        .title {
+            font-size: 120px;
+            font-weight: 700;
+            margin: 0;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.8s ease-out;
+        }
+
+        .title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .title-orange {
+            color: #f5821f;
+        }
+
+        .title-white {
+            color: #ffffff;
+        }
+
+        .subtitle {
+            font-size: 42px;
+            font-weight: 300;
+            color: #b3b3b3;
+            margin-top: 20px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.8s ease-out 0.3s;
+        }
+
+        .subtitle.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 
 <body>
-    <div class="background"></div>
-    <div class="overlay"></div>
+    <div class="background" id="background"></div>
+    <div class="overlay" id="overlay"></div>
+
+    <div class="text-container" id="text-container">
+        <h1 class="title" id="title">
+            <span class="title-orange">Trust</span><span class="title-white">?</span>
+        </h1>
+        <p class="subtitle" id="subtitle">Autonomous Intelligent Systems</p>
+    </div>
 
     <script>
         // Check for remote background image
@@ -62,21 +128,91 @@
         };
         img.src = remoteBg;
 
-        // Inform parent controller about state
-        function reportState() {
-            window.parent.postMessage({
-                type: 'slideState',
-                currentStep: 0,
-                totalSteps: 0
-            }, '*');
+        // Animation steps
+        let currentStep = 0;
+        const maxSteps = 2;
+
+        const background = document.getElementById('background');
+        const overlay = document.getElementById('overlay');
+        const textContainer = document.getElementById('text-container');
+        const title = document.getElementById('title');
+        const subtitle = document.getElementById('subtitle');
+
+        function updateView() {
+            // Step 0: Background visible (initial state)
+
+            // Step 1: Fade out background, show text container, fade in title
+            if (currentStep >= 1) {
+                background.classList.add('fade-out');
+                overlay.classList.add('fade-out');
+                textContainer.classList.add('show');
+                title.classList.add('visible');
+            } else {
+                background.classList.remove('fade-out');
+                overlay.classList.remove('fade-out');
+                textContainer.classList.remove('show');
+                title.classList.remove('visible');
+            }
+
+            // Step 2: Fade in subtitle
+            if (currentStep >= 2) {
+                subtitle.classList.add('visible');
+            } else {
+                subtitle.classList.remove('visible');
+            }
         }
 
-        window.onload = reportState;
+        function next() {
+            if (currentStep < maxSteps) {
+                currentStep++;
+                updateView();
+                reportState();
+            }
+        }
+
+        function prev() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateView();
+                reportState();
+            }
+        }
+
+        // Key Navigation
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                next();
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prev();
+            }
+        });
+
+        // Click to advance
+        document.body.addEventListener('click', () => {
+            next();
+        });
 
         // Message communication for unified deck
         window.addEventListener('message', (e) => {
-            // No internal steps
+            if (e.data === 'next') next();
+            if (e.data === 'prev') prev();
         });
+
+        function reportState() {
+            window.parent.postMessage({
+                type: 'slideState',
+                currentStep: currentStep,
+                totalSteps: maxSteps
+            }, '*');
+        }
+
+        window.onload = () => {
+            updateView();
+            reportState();
+        };
     </script>
 </body>
 
