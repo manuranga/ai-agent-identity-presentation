@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Identity - Presentation Deck</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --nav-bg: rgba(20, 20, 20, 0.8);
+            --accent-orange: #f5821f;
+            --text-white: #ffffff;
+            --text-dim: #888888;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            color: var(--text-white);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #presentation-frame {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        /* Navigation Bar */
+        .nav-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--nav-bg);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: opacity 0.3s, transform 0.3s;
+        }
+
+        .nav-bar.hidden {
+            opacity: 0;
+            transform: translate(-50%, 20px);
+            pointer-events: none;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--text-white);
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.2s, transform 0.1s;
+        }
+
+        .nav-btn:hover {
+            color: var(--accent-orange);
+        }
+
+        .nav-btn:active {
+            transform: scale(0.9);
+        }
+
+        .nav-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .slide-info {
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+            color: var(--text-dim);
+        }
+
+        .slide-info span {
+            color: var(--text-white);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 1001;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: var(--accent-orange);
+            width: 0%;
+            transition: width 0.3s ease-out;
+            box-shadow: 0 0 10px var(--accent-orange);
+        }
+
+        /* Key Highlights */
+        .keyboard-hint {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--nav-bg);
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: var(--text-dim);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+        }
+
+        .keyboard-hint kbd {
+            background: #333;
+            padding: 2px 5px;
+            border-radius: 4px;
+            color: var(--text-white);
+            font-family: inherit;
+        }
+    </style>
+</head>
+
+<body>
+
+    <iframe id="presentation-frame" src="01.html"></iframe>
+
+    <div class="nav-bar" id="nav-bar">
+        <button class="nav-btn" id="prev-btn" title="Previous (Left Arrow)">
+            <svg viewBox="0 0 24 24">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" />
+            </svg>
+        </button>
+        <div class="slide-info">
+            Slide <span id="current-slide-num">1</span> / <span id="total-slides-num">11</span>
+        </div>
+        <button class="nav-btn" id="next-btn" title="Next (Right Arrow / Space)">
+            <svg viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" />
+            </svg>
+        </button>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="keyboard-hint">
+        Use <kbd>←</kbd> <kbd>→</kbd> or <kbd>Space</kbd> to navigate
+    </div>
+
+    <script>
+        const slides = [
+            "01.html", "02.html", "03.html", "04.html", "05.html", "06.html",
+            "07.html", "08.html", "09.html", "10.html", "11.html", "12.html"
+        ];
+
+        let currentSlideIndex = 0;
+        let slideStates = slides.map(() => ({ currentStep: 0, totalSteps: 0 }));
+
+        const frame = document.getElementById('presentation-frame');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const currentSlideNum = document.getElementById('current-slide-num');
+        const totalSlidesNum = document.getElementById('total-slides-num');
+        const progressBar = document.getElementById('progress-bar');
+        const navBar = document.getElementById('nav-bar');
+
+        totalSlidesNum.textContent = slides.length;
+
+        function updateUI() {
+            currentSlideNum.textContent = currentSlideIndex + 1;
+
+            // Calculate overall progress
+            // Each slide is weighted equally in the progress bar
+            const overallProgress = ((currentSlideIndex) / (slides.length - 1)) * 100;
+            progressBar.style.width = `${overallProgress}%`;
+        }
+
+        function loadSlide(index) {
+            if (index < 0 || index >= slides.length) return;
+            currentSlideIndex = index;
+            frame.src = slides[currentSlideIndex];
+            updateUI();
+        }
+
+        function next() {
+            const state = slideStates[currentSlideIndex];
+            if (state.currentStep < state.totalSteps) {
+                frame.contentWindow.postMessage('next', '*');
+            } else {
+                if (currentSlideIndex < slides.length - 1) {
+                    loadSlide(currentSlideIndex + 1);
+                }
+            }
+        }
+
+        function prev() {
+            const state = slideStates[currentSlideIndex];
+            if (state.currentStep > 0) {
+                frame.contentWindow.postMessage('prev', '*');
+            } else {
+                if (currentSlideIndex > 0) {
+                    loadSlide(currentSlideIndex - 1);
+                }
+            }
+        }
+
+        // Event Listeners
+        prevBtn.addEventListener('click', prev);
+        nextBtn.addEventListener('click', next);
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                next();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prev();
+            }
+        });
+
+        // Listen for slide state updates
+        window.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'slideState') {
+                slideStates[currentSlideIndex] = {
+                    currentStep: e.data.currentStep,
+                    totalSteps: e.data.totalSteps
+                };
+            }
+        });
+
+        // Mouse move to show/hide nav
+        let navTimeout;
+        window.addEventListener('mousemove', () => {
+            navBar.classList.remove('hidden');
+            clearTimeout(navTimeout);
+            navTimeout = setTimeout(() => {
+                navBar.classList.add('hidden');
+            }, 3000);
+        });
+
+        // Initialize UI
+        updateUI();
+    </script>
+</body>
+
+</html>
