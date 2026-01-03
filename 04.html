@@ -224,7 +224,7 @@
 
             // Reset/Set internal steps
             if (currentSlide === 0) {
-                document.getElementById('title').classList.add('visible');
+                document.getElementById('title').classList.toggle('visible', currentStep >= 0);
                 document.getElementById('s1-subtext').classList.toggle('show', currentStep >= 1);
             }
 

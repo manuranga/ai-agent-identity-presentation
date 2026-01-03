@@ -182,15 +182,6 @@
         </div>
     </div>
 
-    <!-- Navigation -->
-    <div class="nav-instructions">
-        Press → (Next) or ← (Previous) to navigate
-    </div>
-
-    <!-- Step Counter -->
-    <div class="step-counter" id="stepCounter">
-        Step <span id="currentStep">0</span> / <span id="totalSteps">2</span>
-    </div>
 
     <script>
         let currentStep = 0;
@@ -218,8 +209,7 @@
         }
 
         function updateStepCounter() {
-            document.getElementById('currentStep').textContent = currentStep;
-            document.getElementById('totalSteps').textContent = totalSteps;
+            // Step counter removed from UI
         }
 
         function nextStep() {
