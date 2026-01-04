@@ -344,8 +344,8 @@
 
         // Key Navigation
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown') next();
-            if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev();
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown' || e.key === 'ArrowDown') next();
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'ArrowUp') prev();
         });
 
         // Initial trigger

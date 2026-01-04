@@ -162,10 +162,10 @@
 
         // Navigation Handlers
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown') {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown' || e.key === 'ArrowDown') {
                 e.preventDefault();
                 next();
-            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'ArrowUp') {
                 e.preventDefault();
                 prev();
             }
