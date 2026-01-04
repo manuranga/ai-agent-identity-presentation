@@ -24,7 +24,8 @@
             color: var(--text-white);
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
-            cursor: none;
+            cursor: pointer;
+            /* Changed to pointer to indicate clickability */
         }
 
         .presentation-container {
@@ -120,25 +121,72 @@
     </div>
 
     <script>
-        // Trigger animation on load
+        // State management
+        let currentStep = 0;
+        const totalSteps = 1; // 0 = hidden, 1 = shown
+
+        const mainContent = document.getElementById('main-content');
+        const title = document.getElementById('title');
+
+        function updateView() {
+            if (currentStep >= 1) {
+                mainContent.classList.add('show');
+                title.classList.add('show');
+            } else {
+                mainContent.classList.remove('show');
+                title.classList.remove('show');
+            }
+        }
+
+        function next() {
+            if (currentStep < totalSteps) {
+                currentStep++;
+                updateView();
+                reportState();
+            }
+        }
+
+        function prev() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateView();
+                reportState();
+            }
+        }
+
+        // Initialize
         window.onload = () => {
-            setTimeout(() => {
-                document.getElementById('main-content').classList.add('show');
-                document.getElementById('title').classList.add('show');
-            }, 100);
+            updateView();
             reportState();
         };
 
+        // Navigation Handlers
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                next();
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prev();
+            }
+        });
+
+        // Click handler
+        document.body.addEventListener('click', () => {
+            next();
+        });
+
         // Message communication for unified deck
         window.addEventListener('message', (e) => {
-            // No internal steps in 12.html
+            if (e.data === 'next') next();
+            if (e.data === 'prev') prev();
         });
 
         function reportState() {
             window.parent.postMessage({
                 type: 'slideState',
-                currentStep: 0,
-                totalSteps: 0
+                currentStep: currentStep,
+                totalSteps: totalSteps
             }, '*');
         }
     </script>

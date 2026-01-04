@@ -24,7 +24,7 @@
             color: var(--text-white);
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden;
-            cursor: none;
+            cursor: pointer;
         }
 
         .presentation-container {
@@ -44,7 +44,6 @@
             opacity: 0;
             visibility: hidden;
             transition: opacity var(--transition-speed) ease-in-out;
-            /* Reduced padding to maximize content area */
             padding: 20px;
             box-sizing: border-box;
         }
@@ -57,7 +56,6 @@
         /* Slide 1 Styling */
         .slide#slide-1 {
             padding: 80px;
-            /* Match standard padding for the title slides */
         }
 
         /* Title Section Style from Slide 3 */
@@ -100,15 +98,13 @@
             transition: all 0.5s ease-out;
         }
 
-        /* Slide 2 Styling - Optimized for Maximum Image Size */
+        /* Slide 2 Styling */
         .content-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
-            /* Reduced gap */
             width: 100%;
             height: 100%;
-            /* Fill the slide */
         }
 
         .evidence-card {
@@ -118,13 +114,11 @@
             transform: scale(0.95);
             transition: all 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
             height: 100%;
-            /* Force card to full height */
             overflow: hidden;
         }
 
         .image-placeholder {
             width: 100%;
-            /* Flex grow ensures it eats up all available vertical space */
             flex-grow: 1;
             background: #2a2a2a;
             border-radius: 8px;
@@ -135,26 +129,22 @@
             overflow: hidden;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             margin-bottom: 8px;
-            /* Minimal margin for link */
         }
 
         .image-placeholder img {
             width: 100%;
             height: 100%;
-            /* Contain ensures the full image is visible without cropping, utilizing max space */
             object-fit: contain;
         }
 
         .source-link {
             font-size: 0.75rem;
-            /* Smaller text to save space for images */
             color: var(--accent-orange);
             text-decoration: underline;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             flex-shrink: 0;
-            /* Prevent link from shrinking, it stays at bottom */
         }
 
         /* Animation States */
@@ -207,8 +197,8 @@
 
     <script>
         /**
-         * Logic: We track current slide and a "step" within that slide.
-         * Slide 1: Step 0 (Title), Step 1 (Subtext)
+         * Logic: 
+         * Slide 1: Step 0 (Hidden), Step 1 (Title), Step 2 (Subtext)
          * Slide 2: Step 0 (Left Image), Step 1 (Right Image)
          */
 
@@ -224,8 +214,11 @@
 
             // Reset/Set internal steps
             if (currentSlide === 0) {
-                document.getElementById('title').classList.toggle('visible', currentStep >= 0);
-                document.getElementById('s1-subtext').classList.toggle('show', currentStep >= 1);
+                // Step 0: Blank
+                // Step 1: Title
+                // Step 2: Subtext
+                document.getElementById('title').classList.toggle('visible', currentStep >= 1);
+                document.getElementById('s1-subtext').classList.toggle('show', currentStep >= 2);
             }
 
             if (currentSlide === 1) {
@@ -236,7 +229,8 @@
 
         function next() {
             if (currentSlide === 0) {
-                if (currentStep < 1) {
+                // Now max steps is 2 (0->1->2)
+                if (currentStep < 2) {
                     currentStep++;
                 } else {
                     currentSlide = 1;
@@ -256,7 +250,7 @@
                     currentStep--;
                 } else {
                     currentSlide = 0;
-                    currentStep = 1;
+                    currentStep = 2; // Return to end of Slide 1
                 }
             } else if (currentSlide === 0) {
                 if (currentStep > 0) {
@@ -268,8 +262,19 @@
 
         // Key Navigation
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') next();
-            if (e.key === 'ArrowLeft') prev();
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                next();
+            }
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prev();
+            }
+        });
+
+        // Click handler
+        document.body.addEventListener('click', () => {
+            next();
         });
 
         // Initial trigger
@@ -285,15 +290,22 @@
         });
 
         function reportState() {
-            // totalSteps calculation for 04.html:
-            // Slide 1 has 2 steps (0, 1), Slide 2 has 2 steps (0, 1).
-            // Total sub-steps across all slides: 0, 1, 2, 3 (Total 4 states, max index 3)
-            // currentStep index in linear fashion:
-            let linearStep = (currentSlide * 2) + currentStep;
+            // totalSteps calculation:
+            // Slide 1 has 3 steps (0, 1, 2)
+            // Slide 2 has 2 steps (0, 1)
+            // Total linear states = 5 (indices 0 to 4)
+
+            let linearStep = 0;
+            if (currentSlide === 0) {
+                linearStep = currentStep;
+            } else {
+                linearStep = 3 + currentStep; // 3 is the count of steps in Slide 0 (0,1,2)
+            }
+
             window.parent.postMessage({
                 type: 'slideState',
                 currentStep: linearStep,
-                totalSteps: 3
+                totalSteps: 4 // Max Index
             }, '*');
         }
 
