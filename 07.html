@@ -427,8 +427,8 @@
 
         // Key Navigation
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') next();
-            if (e.key === 'ArrowLeft') prev();
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown') next();
+            if (e.key === 'ArrowLeft' || e.key === 'PageUp') prev();
         });
 
         // Initial trigger
